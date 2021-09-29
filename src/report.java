@@ -1,16 +1,16 @@
 import java.util.*;
 import java.io.File;
-import java.text.*;
+
 
 public class report {
     private String title;
     private String description;
     private Date eventDate;
     private Date submittedDate;
-    private ArrayList <File> filesList;
+    private ArrayList<File> filesList;
 
 
-    public report(String title, String description, Date submittedDate, Date eventDate, ArrayList filesList){
+    public report(String title, String description, Date submittedDate, Date eventDate, ArrayList filesList) {
         super();
         setTitle(title);
         setDescription(description);
@@ -23,7 +23,7 @@ public class report {
         return title;
     }
 
-    public void setTitle(String title){
+    public void setTitle(String title) {
         this.title = title;
     }
 
@@ -31,7 +31,7 @@ public class report {
         return description;
     }
 
-    public void setDescription(String description){
+    public void setDescription(String description) {
         this.description = description;
     }
 
