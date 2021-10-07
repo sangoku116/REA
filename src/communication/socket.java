@@ -1,6 +1,6 @@
 package communication;
 
-import java.io.IOException;
+
 
 
 public class socket {
@@ -8,10 +8,11 @@ public class socket {
     private final int port;
 
 
-    public socket() throws IOException{
+    public socket(){
         super();
         server = "anynoumousServer";
         port = 1337;
+
     }
 
     public String getServer() {
