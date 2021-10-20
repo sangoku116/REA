@@ -1,1 +1,3 @@
-<?php
+<?php $title= "admin panel" ?>
+
+
