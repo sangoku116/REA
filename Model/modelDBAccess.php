@@ -21,7 +21,7 @@ class modelDBAccess{
     }
     public function getReports(): bool|array
     {
-        $sql = "select ";
+        $sql = "select * from `rea705`.Reports";
         return self::sendSql($sql);
     }
     public function sendSql($sql): bool|array
