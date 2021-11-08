@@ -8,6 +8,11 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
     exit;
 }
 
+// Check for reset password instance part 2
+if(isset($_SESSION['confirmMsg'])){
+    echo "<script>alert('". $_SESSION['confirmMsg'] . "') </script>";
+}
+
 // Include config file
 //require_once "database_connect.php";
 include "database_connect.php";
@@ -63,7 +68,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                                 header("Location: reset_pass.php");
                             } else{
                                 session_start();
-
                                 //Store cookie session
                                 $_SESSION["loggedin"] = true;
                                 $_SESSION["id"] = $id;
