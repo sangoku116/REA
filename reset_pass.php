@@ -36,6 +36,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
     //Check input error for database
     if(empty($new_password_err) && empty($confirm_password_err)) {
+
+        echo '<script>alert("Password changed successfully! The page will be redirected back to Administator Login.")</script>';
+
         // sql statement
         $sql = 'UPDATE Admin SET Password = ? WHERE UserId = ?';
 
@@ -54,6 +57,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 $changetime = mysqli_query($link, $sqltime);
                 //Password has updated, and can redirect back to login
                 session_destroy();
+                // start a session for creating password reset alert box part 1
+                session_start();
+                $_SESSION['confirmMsg'] = "Password changed successfully! The page will be redirected back to Administrator Login.";
                 header("Location: Admin_login.php");
                 exit();
             } else {
