@@ -8,6 +8,8 @@
 <body>
 
 <?php
+
+
 // define variables and set to empty values
 $titleErr = $commentErr = $dateErr = "";
 $title = $comment = $date = "";
@@ -53,25 +55,54 @@ function test_input($data) {
     <span class="error">* <?php echo $commentErr;?></span>
     <br><br>
     <input type="submit" name="submit" value="Submit">
+    <a href="Admin_login.php" class="btn btn-info" role="button">Admin mode</a>
 </form>
+
 
 <?php
 
-if ($title == null) {
-    exit;
-} elseif ($date == null){
-    exit;
-} elseif ($comment == null){
-    exit;
-} else {
-    echo "<h2>Your Input:</h2>";
-    echo $title;
-    echo "<br>";
-    echo $date;
-    echo "<br>";
-    echo $comment;
-    echo "<br>";
+include "database_connect.php";
+
+function f_alert($message) {
+    echo "<script>alert('$message');</script>";
 }
+
+
+if (!empty($titleErr) OR (!empty($dateErr)) OR (!empty($commentErr))){
+    f_alert('The submission was not successful. Please check for errors and try again.');
+} elseif (!empty($title) OR (!empty($comment)) OR (!empty($date))) {
+    $_POST=array();
+    //$sql = "INSERT INTO Reports (ReportID, Report_title, Submission_Date, Report_Description) VALUES (?, ?, ?, ?)";
+    $sql = "INSERT INTO Reports (Report_title, Submission_Date, Report_Description) VALUES (?, ?, ?)";
+
+    if($result = mysqli_prepare($link, $sql)){
+        //Bind param to sql statement
+         //mysqli_stmt_bind_param($result, "isss", $t,$ReportTitle, $ReportDate, $ReportComment);
+        mysqli_stmt_bind_param($result,"sss", $ReportTitle, $ReportDate, $ReportComment);
+        //$t = time();
+        $ReportTitle = $title;
+        $ReportDate = $date;
+        $ReportComment = $comment;
+
+        if(mysqli_stmt_execute($result)){
+            // when values are entered, a report ID will be generated into the database
+            $t = time();
+            $sqlID = "UPDATE Reports SET ReportID = '$t' WHERE Report_title = '$title' AND Submission_Date = '$date' AND Report_Description = '$comment'";
+            $ReportID = mysqli_query($link, $sqlID);
+            echo '<script>alert("Submission Success! Your ReportID is '.$t.'")</script>';
+            ///f_alert('Submission Success!');
+        }
+        mysqli_stmt_close($result);
+
+    }
+}
+mysqli_close($link);
+
+// -------------- ANOTHER ELSE STATEMENT FOR WHEN CONNECTION CANNOT BE ESTABLISHED -------------------------
+//else {
+//    f_alert('Continue');
+
+//}
 ?>
 
 </body>
