@@ -2,9 +2,9 @@
 // Initialize the session
 session_start();
 
-Check if the user is logged in, if not then redirect him to login page
+// Check if the user is logged in, if not then redirect him to login page
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-    header("location: AdminLogin.php");
+   header("location: Admin_login.php");
     exit;
 }
 ?>
@@ -20,11 +20,25 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     </style>
 </head>
 <body>
-<div class="wrapper">
-    <h1 class="my-5">Hi, <b><?php echo htmlspecialchars($_SESSION["username"]); ?></b>. Welcome to our site.</h1>
+<h1 class="my-5">Hi, <b><?php echo htmlspecialchars($_SESSION["username"]); ?></b>. Welcome to our site.</h1>
 <p>
     <a href="logout.php" class="btn btn-danger ml-3">Sign Out of Your Account</a>
 </p>
-</div>
+<?php
+include_once 'database_connect.php';
+$display = "SELECT * FROM Reports";
+$result = mysqli_query($link, $display);
+while ($row = mysqli_fetch_array($result)){
+    echo "<img src='upload/".$row['File']."'>";
+    echo "<br><br>";
+    echo "<p>".$row["Report_title"]."</p>";
+    echo "<br><br>";
+    echo "<p>".$row["Submission_Date"]."</p>";
+    echo "<br><br>";
+    echo "<p>".$row["Report_Description"]."</p>";
+    echo "<br>";
+}
+?>
 </body>
 </html>
+
