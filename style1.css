@@ -1,0 +1,143 @@
+.welcome{ /*Currently not in use*/
+    border-style: dotted;
+    margin-left: 0px;
+    height: 700px;
+    width: 1200px;
+    display: inline-block;
+    position: relative;
+    left: 30px;
+    top: 15px;
+    color: black;
+}
+.welcome-text{
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    display: inline-block;
+    background-color: rgba(0,0,0,0.7);
+    border: solid rgba(0,0,0,0.7);
+    padding: 270px;
+    position: relative;
+    left: 30px;
+    top: 35px;
+}
+body{
+    background-image: url('background/pexels-karolina-grabowska-4040649.jpg');
+    /* background-image: url('https://cdn.wallpapersafari.com/61/75/Ymx59h.png'); */
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+}
+.all{  /*used for the box of Form.php*/
+    width: 700px;
+    background-color: #a4cbc4;
+    /* background-color: #73b2aa; */
+    padding: 10px;
+    display: inline-block;
+    overflow: hidden;
+     float: right;
+     position: relative;
+    right: 30px;
+    top: 15px;
+    bottom: 50px;
+
+}
+.form-all{
+    width: 500px;
+    background-color: #a4cbc4;
+    padding: 10px;
+    display: inline-block;
+    overflow: hidden;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-100%);
+}
+.error{
+    color: #FF0000;
+}
+.center-title{
+    display:table;
+    margin:0 auto;
+}
+.form-submit {  /* used by Form.php form*/
+    width: 70%;
+    margin: 10px auto;
+    padding: 30px;
+    border: 5px solid #555;
+    overflow: hidden;
+}
+input {
+    width: 85%;
+    border: 1px solid #f1e1e1;
+    display: block;
+    padding: 5px 10px;
+}
+a.button{
+    padding: 10px;
+    display: inline-block;
+    border-radius: 2px;
+    font-family: "Arial";
+    border: 0;
+    margin: 0 10px;
+    background: deepskyblue;
+    font-size: 15px;
+    line-height: 20px;
+    float: right;
+    color: white;
+    width: auto;
+    height: auto;
+    text-decoration:none;
+}
+.logoff{
+    padding: 10px;
+    display: inline-block;
+    border-radius: 2px;
+    font-family: "Arial";
+    border: 0;
+    margin: auto;
+    background: deepskyblue;
+    font-size: 15px;
+    line-height: 20px;
+    color: white;
+    width: auto;
+    height: auto;
+    text-decoration:none;
+}
+.loginError{
+    padding: 10px;
+    display: inline-block;
+    border-radius: 2px;
+    font-family: "Arial";
+    border: 1px solid #FF6262;
+    margin: auto;
+    background: rgba(246,122,122,0.7);
+    font-size: 15px;
+    line-height: 20px;
+    float: right;
+    color: white;
+    width: auto;
+    height: auto;
+}
+table{
+    border: 1px solid black;
+    border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+    width: 70%;
+    border-spacing: 50px;
+    position: relative;
+    top: 30px;
+}
+th, td{
+    background-color: rgba(40,158,144,0.8);
+    border: 2px solid rgba(255,255,255,0.8);
+    border-collapse: collapse;
+    padding: 15px;
+    color: white;
+    text-decoration:none;
+}
+.logoff-center{
+    margin: auto;
+    width: 60%;
+}
