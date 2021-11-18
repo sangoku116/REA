@@ -105,39 +105,42 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="style1.css">
     <style>
         body{ font: 14px sans-serif; }
         .wrapper{ width: 360px; padding: 20px; }
     </style>
 </head>
 <body>
-<div class="wrapper">
-    <h2>Administrator Login</h2>
-    <p>Please fill in your credentials to login.</p>
+<div class="form-all">
+    <h2><span class="center-title">Administrator Login</span></h2>
 
     <?php
     if(!empty($login_err)){
-        echo '<div class="alert alert-danger">' . $login_err . '</div>';
+        echo '<span class="loginError">' . $login_err . '</span>';
     }
     ?>
 
     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
         <div class="form-group">
-            <label>Username</label>
+            <label>Username:</label>
             <input type="text" name="username" class="form-control <?php echo (!empty($username_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $username; ?>">
-            <span class="invalid-feedback"><?php echo $username_err; ?></span>
+            <span class="error"><?php echo $username_err; ?></span>
+            <br><br>
         </div>
         <div class="form-group">
-            <label>Password</label>
+            <label>Password:</label>
             <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
-            <span class="invalid-feedback"><?php echo $password_err; ?></span>
+            <span class="error"><?php echo $password_err; ?></span>
         </div>
         <div class="form-group">
+            <br><br>
             <input type="submit" class="btn btn-primary" value="Login">
-            <a href="Form.php" class="btn btn-info" role="button">Back to Forms</a>
+
         </div>
     </form>
+    <a href="Form.php" class="button" role="button">Back to Forms</a>
 </div>
 </body>
 </html>
