@@ -1,11 +1,16 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <style>
-        .error {color: #FF0000;}
-    </style>
+    <link rel="stylesheet" href="style1.css">
 </head>
 <body>
+<span class="welcome-text">
+<h1 style="color: white">Welcome to Tampa Nama.</h1>
+<h4 style="color: white"> Anonymous Reporting</h4>
+<p style="color: white">some text here </p>
+</span>
+
+
 
 <?php
 
@@ -45,25 +50,28 @@ function test_input($data) {
     return $data;
 }
 ?>
-
-<h2>Anonymous Reporting Form</h2>
+<div class="all"> <!-- this div is not used lol -->
+<h2><span class="center-title">Anonymous Reporting Form</span></h2>
 <p><span class="error">* required field</span></p>
-<form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" enctype="multipart/form-data">
-    Title: <input type="text" name="title" value="<?php echo $title;?>">
+<form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" enctype="multipart/form-data" class="form-submit">
+    <p>Title: <input type="text" name="title" value="<?php echo $title;?>"></p>
     <span class="error">* <?php echo $titleErr;?></span>
     <br><br>
-    Event Date: <input type="date" name="date" value="<?php echo $date=$_POST['date'];?>">
+    <p>Event Date: <input type="date" name="date" value="<?php echo $date=$_POST['date'];?>"></p>
     <span class="error">* <?php echo $dateErr;?></span>
     <br><br>
-    Comment: <textarea name="comment" rows="5" cols="40"><?php echo $comment;?></textarea>
+    <p>Comment:</p><textarea name="comment" rows="5" cols="40"><?php echo $comment;?></textarea>
     <span class="error">* <?php echo $commentErr;?></span>
     <br><br>
     <label for="file_name"> Files:</label>
     <input type="file" name="anyfile" id="anyfile">
     <br><br>
+    Note: Only .zip, .pdf, .docx, .doc, .jpg, .png, .txt file formats are accepted.
+    <br><br>
     <input type="submit" name="submit" value="Submit">
-    <a href="Admin_login.php" class="btn btn-info" role="button">Admin mode</a>
 </form>
+    <a href="Admin_login.php" class="button" role="button">Admin mode</a>
+</div>
 <?php
 
 include "database_connect.php";
@@ -98,36 +106,36 @@ if (!empty($titleErr) OR (!empty($dateErr)) OR (!empty($commentErr))){
 
                 //Check if file was uploaded with no error
                 if(isset($_FILES["anyfile"]) && $_FILES["anyfile"]["error"] == 0){
-                    $allowed = array("jpg" => "image/jpg", "jpeg" => "image/jpeg", "gif" => "image/gif", "png" => "image/png", "heif" => "image/heif");
-                    $filename = $_FILES["anyfile"]["name"];
-                    $filetype = $_FILES["anyfile"]["type"];
-                    $filesize = $_FILES["anyfile"]["size"];
+                    //name of the uploaded file
+                    // $allowed = array("jpg", "jpeg", "gif", "png", "heif", "doc", "docx", "zip", "txt", "pdf");
+                    $filename = $_FILES["anyfile"]["name"]; //name of the uploaded file
+                    $filesize = $_FILES["anyfile"]["size"]; //size of the uploaded file
+                    $fileplace = $_FILES["anyfile"]["tmp_name"]; //physical file on a temp uploads directory on server
+
+                    $maxsize = 10*1024*1024; // set max size of 10MB
+
+                    $upload_folder = 'upload/'.$filename;
 
                     //Validate file extension
                     $ext = pathinfo($filename, PATHINFO_EXTENSION);
-                    if(!array_key_exists($ext, $allowed)) die("Error: Please select a valid file format.");
-
-                    //Validate File size - Max 10MB
-                    $maxsize = 10*1024*1024;
-                    if($filesize > $maxsize) die("Error: File size is larger than 10MB");
-
-                    //Validate File type
-                    if(in_array($filetype, $allowed)){
-
-                        //Folder where file will be stored
-                        $upload_folder = "upload/";
-
-                        //Check whether file exists before uploading it
-                        if(move_uploaded_file($_FILES["anyfile"]["tmp_name"], $upload_folder.$filename)){
+                    if(!in_array($ext, ['zip','pdf','docx','doc','jpg','png','txt'])){
+                        echo "Error: Please select a valid file format.";
+                    } elseif ($filesize > $maxsize){
+                        echo "Error: File is larger than 10MB";
+                    } else {
+                        //move the uploaded tmp file into destination
+                        if(move_uploaded_file($fileplace, $upload_folder)){
                             $stmt = "UPDATE Reports SET File = '$filename' WHERE ReportID = '$t'";
-                            mysqli_query($link, $stmt);
-                            echo "File uploaded!";
-                        } else{
-                            echo "File not uploaded.";
+                            if(mysqli_query($link, $stmt)){
+                                echo "File Uploaded!";
+                            } else {
+                                echo "File failed to upload";
+                            }
                         }
-                    } else{
-                        echo "Error: There was a problem uploading your file";
                     }
+
+                } else {
+                    echo "File upload encountered an error. The file may be missing, or corrupted.";
                 }
             }
             echo '<script>alert("Submission Success! Your ReportID is '.$t.'")</script>';
@@ -137,10 +145,7 @@ if (!empty($titleErr) OR (!empty($dateErr)) OR (!empty($commentErr))){
 
     }
 }
-
 mysqli_close($link);
 ?>
 </body>
 </html>
-
-
