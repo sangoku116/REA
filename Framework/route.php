@@ -13,7 +13,7 @@ class route {
         return $this->method;
     }
     public function path(string $path): string{
-        return $this->path;
+        return $this->path; 
     }
     public function matches(string $method, string $path): bool{
         return $this->method === $method && $this->path === $path;

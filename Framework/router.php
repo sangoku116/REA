@@ -1,6 +1,11 @@
 <?php
+
+use JetBrains\PhpStorm\NoReturn;
+
 class router {
     protected array $routes = [];
+    protected array $errorHandler = [];
+    protected route $current;
 
     public function add(string $method, string $path, callable $handler): route {
         return $this->routes[] = new Route ($method, $path, $handler);
@@ -39,5 +44,27 @@ class router {
             }
         }
         return null;
+    }
+    public function errorHandler(int $code, callable $handler){
+        $this->errorHandler[$code] = $handler;
+    }
+    public function dispatchNotAllowed(){
+        $this->errorHandler[400] ??= fn() => "not allowed";
+        return $this->errorHandler[400]();
+    }
+    public function dispatchNotFound(){
+        $this->errorHandler[404] ??=fn() => "not found";
+        return $this->errorHandler[404]();
+    }
+    public function dispatchError() {
+        $this->errorHandler[500] ??= fn() => "server error";
+        return $this->errorHandler[500]();
+    }
+    #[NoReturn] public function redirect($path){
+        header("Location: {$path}", $replace= true, $code = 301);
+        exit;
+    }
+    public function current(): ?route{
+        return $this->current;
     }
 }
