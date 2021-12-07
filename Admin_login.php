@@ -8,7 +8,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
     exit;
 }
 
-// Check for reset password instance part 2
+// Check for reset password instance part 2 - works with reset page
 if(isset($_SESSION['confirmMsg'])){
     echo "<script>alert('". $_SESSION['confirmMsg'] . "') </script>";
 }
@@ -23,81 +23,51 @@ $username_err = $password_err = $login_err = "";
 
 // Processing form data when form is submitted
 if($_SERVER["REQUEST_METHOD"] == "POST"){
+    $username = trim($_POST["username"]);
+    $password = trim($_POST["password"]);
 
-    // Check if username is empty
-    if(empty(trim($_POST["username"]))){
-        $username_err = "Please enter username.";
-    } else{
-        $username = trim($_POST["username"]);
-    }
+    $sql = "SELECT UserID, Username, Password, LoginTime FROM Admins WHERE Username = ?";
 
-    // Check if password is empty
-    if(empty(trim($_POST["password"]))){
-        $password_err = "Please enter your password.";
-    } else{
-        $password = trim($_POST["password"]);
-    }
+    if($result = mysqli_prepare($link, $sql)){
+        mysqli_stmt_bind_param($result, "s", $admin_user);
+        $admin_user = $username;
 
-    // Validate credentials
-    if(empty($username_err) && empty($password_err)){
-        //Prepare sql statement
-        $sql = "SELECT UserID, Username, Password, LoginTime FROM Admin WHERE Username = ?";
+        if(mysqli_stmt_execute($result)){
+            mysqli_stmt_store_result($result);
 
-        if($result = mysqli_prepare($link, $sql)){
-            //Bind parameters to sql statement
-            mysqli_stmt_bind_param($result, "s", $stmt_username);
-            $stmt_username = $username;
-
-            //execute the prepared statement
-            if(mysqli_stmt_execute($result)){
-                //store result of sql
-                mysqli_stmt_store_result($result);
-
-                //If username exists, then check password
-                if(mysqli_stmt_num_rows($result) == 1){
-                    // take id, user, password results and bind them into variables
-                    mysqli_stmt_bind_result($result, $id, $username, $hashed_pass, $time);
-                    if(mysqli_stmt_fetch($result)) {
-                        //if($password === $hashed_pass) {
-                        if(password_verify($password, $hashed_pass)){
-                            if(is_null($time)){
-                                session_start();
-                                $_SESSION["loggedin"] = true;
-                                $_SESSION['username'] = $username;
-                                $_SESSION['id'] = $id;
-                                header("Location: reset_pass.php");
-                            } else{
-                                session_start();
-                                //Store cookie session
-                                $_SESSION["loggedin"] = true;
-                                $_SESSION["id"] = $id;
-                                $_SESSION["username"] = $username;
-
-                                //Direct them into Welcome page
-                                header("Location: welcome.php");
-                            }
-                        } else{
-                            //Incorrect credentials
-                            $login_err = "Bad Username or Password";
-                        }
+            if(mysqli_stmt_num_rows($result) == 1){
+                mysqli_stmt_bind_result($result, $id, $username, $hashed_pass, $time);
+                if(mysqli_stmt_fetch($result)){
+                    //if($passowrd === $hashed_pass){
+                    if(password_verify($password, $hashed_pass)){
+                        if(is_null($time)){
+                            session_start();
+                            $_SESSION["loggedin"] = TRUE;
+                            $_SESSION["id"] = $id;
+                            $_SESSION["username"] = $username;
+                            header("Location: reset_pass.php");
+                        }else{ // possible if/else statement for the User role admin?
+                            session_start();
+                            $_SESSION["loggedin"] = TRUE;
+                            $_SESSION["id"] = $id;
+                            $_SESSION["username"] = $username;
+                            header("Location: welcome.php");
+                        } // here will be for any other user.
+                    }else{
+                        $login_err = "Bad Username or Password.";
                     }
-                } else{
-                    //Username or Password does not exist
-                    $login_err = "Bad username or password";
                 }
-
-            } else {
-                echo 'Oops! Something went wrong. Please try again later.';
+            } else{
+                $login_err = "Bad Username or Password.";
             }
-            //Close statement
-            mysqli_stmt_close($result);
+        } else {
+            echo "Oops! Something went wrong. Please try again later.";
         }
 
     }
-
-    // Close connection
-    mysqli_close($link);
+    mysqli_stmt_close($result);
 }
+mysqli_close($link);
 ?>
 
 <!DOCTYPE html>
@@ -105,16 +75,28 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
-    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
-    <link rel="stylesheet" href="style1.css">
-    <style>
-        body{ font: 14px sans-serif; }
-        .wrapper{ width: 360px; padding: 20px; }
-    </style>
+    <link rel="stylesheet" href="w3css.css">
 </head>
+<style>
+    body, html {
+        height: 100%;
+        font-family: "Inconsolata", sans-serif;
+        background-color: #6c88a0;
+    }
+</style>
 <body>
 <div class="form-all">
-    <h2><span class="center-title">Administrator Login</span></h2>
+    <!-- Links (sit on top) -->
+    <div class="w3-top">
+        <div class="w3-row w3-padding w3-black">
+            <div class="w3-col s3">
+                <a href="Form.php" class="w3-button w3-block w3-black">FORM</a>
+            </div>
+            <div class="w3-col s3">
+                <a href="Admin_login.php" class="w3-button w3-block w3-black">ADMIN</a>
+            </div>
+        </div>
+    </div>
 
     <?php
     if(!empty($login_err)){
@@ -122,25 +104,25 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
     ?>
 
-    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-        <div class="form-group">
-            <label>Username:</label>
-            <input type="text" name="username" class="form-control <?php echo (!empty($username_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $username; ?>">
-            <span class="error"><?php echo $username_err; ?></span>
-            <br><br>
+    <div class="w3-container" id="where" style="padding-bottom:32px;">
+        <div class="w3-content" style="max-width:700px">
+            <br><br><br><br><br><br>
+            <h5 class="w3-center w3-padding-48"><span class="w3-tag w3-wide">ADMINISTRATOR LOGIN</span></h5>
+            <p><span style="color: white">Please enter your credentials to login. </span></p>
+            <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+                <!--<form action="/action_page.php" target="_blank"> -->
+                <p><input class="w3-input w3-padding-16 w3-border" type="text" placeholder="Username" required name="username" value="<?php echo $username; ?>"></p>
+                <p><input class="w3-input w3-padding-16 w3-border" type="password" placeholder="Password" required name="password"></p>
+                <?php
+                if(!empty($login_err)){
+                    echo '<span class="w3-tag w3-red w3-text-white">' . $login_err . '</span>';
+                }
+                ?>
+                <p><button class="w3-button w3-black" type="submit" value="Submit">LOGIN</button></p>
+            </form>
         </div>
-        <div class="form-group">
-            <label>Password:</label>
-            <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
-            <span class="error"><?php echo $password_err; ?></span>
-        </div>
-        <div class="form-group">
-            <br><br>
-            <input type="submit" class="btn btn-primary" value="Login">
-
-        </div>
-    </form>
-    <a href="Form.php" class="button" role="button">Back to Forms</a>
+    </div>
 </div>
 </body>
 </html>
+
