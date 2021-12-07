@@ -1,54 +1,91 @@
+
 <?php
 // Initialize the session
 session_start();
 
 // Check if the user is logged in, if not then redirect him to login page
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-   header("location: Admin_login.php");
+    header("location: Admin_login.php");
     exit;
 }
 
 include_once "database_connect.php";
 
-$sql = 'SELECT * FROM Reports';
-$result = mysqli_query($link,$sql);
-
-// selects all file info from db and sets them to array called $files
-$files = mysqli_fetch_all($result, MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test</title>
-    <link rel="stylesheet" href="style1.css">
+    <title>Welcome</title>
+    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="w3css.css">
+    <style>
+        body{font: 14px sans-serif; text-align: center;
+            background: linear-gradient(#6c88a0, #145288) no-repeat fixed;
+            background-size: cover;
+        }
+    </style>
 </head>
 <body>
-<h1 class="center-title">Hello, <b><?php echo htmlspecialchars($_SESSION["username"]); ?></b>. Welcome to our site.</h1>
-<p>
-    <a href="logout.php" class="button">Sign Out of Your Account</a>
-</p>
-<table>
-    <tr>
-        <th>ID</th>
-        <th>Filename</th>
-        <th>Event Date</th>
-        <th>Report Description</th>
-        <th>Action</th>
-    </tr>
-    <tbody>
-    <?php foreach ($files as $file): ?>
-        <tr>
-            <td><?php echo $file['ReportID']; ?></td>
-            <td><?php echo $file['Report_title']; ?></td>
-            <td><?php echo $file['Submission_Date']; ?></td>
-            <td><?php echo $file['Report_Description']; ?></td>
-            <td><a href="upload/<?php echo $file['File']?>">View</a></td>
-        </tr>
-    <?php endforeach;?>
-    </tbody>
-</table>
+<div class="w3-top">
+    <div class="w3-row w3-padding w3-black">
+        <div class="w3-col w3-left w3-hide-small s1">
+            <span class="w3-button-welcome w3-bar-item w3-black"><b><?php echo htmlspecialchars($_SESSION["username"]); ?></b></span>
+        </div>
+        <div class="w3-col w3-right w3-hide-small s1">
+            <a href="logout.php" class="w3-button w3-bar-item w3-black">SIGN OUT</a>
+        </div>
+        <?php
+        $check = $_SESSION["username"];
+
+        if($check === "user2"){
+            echo '<div class="w3-col w3-right w3-hide-small s1">';
+            echo '<a href="deluser.php" class="w3-button w3-bar-item w3-black">DELETE USER</a>';
+            echo '</div>';
+            echo '<div class="w3-col w3-right w3-hide-small s1">';
+            echo '<a href="adduser.php" class="w3-button w3-bar-item w3-black">ADD USER</a>';
+            echo '</div>';
+        }
+        ?>
+    </div>
+</div>
+<br><br><br>
+<h3 class="w3-center w3-padding-48"><span class="w3-tag w3-wide">REPORTS</span></h3>
+<?php
+include_once 'database_connect.php';
+$display = "SELECT * FROM Reports";
+$result = mysqli_query($link, $display);
+echo "<table>";
+echo "<tr>";
+echo "<th>Report ID</th>";
+echo "<th>Report Title</th>";
+echo "<th>Submission Date</th>";
+echo "<th>Report Description</th>";
+echo "<th>Action</th>";
+echo "</tr>";
+
+while ($row = mysqli_fetch_array($result)){
+    if(empty($row['File'])){
+        echo "<tr>";
+        echo "<td>".$row["ReportID"]."</td>";
+        echo "<td>".$row["Report_title"]."</td>";
+        echo "<td>".$row["Submission_Date"]."</td>";
+        echo "<td>".$row["Report_Description"]."</td>";
+        echo "<td> No file added</td>";
+        echo "</tr>";
+    } else{
+        echo "<tr>";
+        echo "<td>".$row["ReportID"]."</td>";
+        echo "<td>".$row["Report_title"]."</td>";
+        echo "<td>".$row["Submission_Date"]."</td>";
+        echo "<td>".$row["Report_Description"]."</td>";
+        echo "<td><a href='upload/".$row['File']."'>View</a></td>";
+
+        echo "</tr>";
+    }
+}
+echo "</table>";
+?>
 </body>
 </html>
-
