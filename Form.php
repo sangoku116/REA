@@ -1,151 +1,186 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-    <link rel="stylesheet" href="style1.css">
-</head>
-<body>
-<span class="welcome-text">
-<h1 style="color: white">Welcome to Tampa Nama.</h1>
-<h4 style="color: white"> Anonymous Reporting</h4>
-<p style="color: white">some text here </p>
-</span>
-
 
 
 <?php
-
-// define variables and set to empty values
-$titleErr = $commentErr = $dateErr = "";
-$title = $comment = $date = "";
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (empty($_POST["title"])) {
-        $titleErr = "Title is required";
-    } else {
-        $title = test_input($_POST["title"]);
-    }
-
-// should we leave comment to be optional
-    if (empty($_POST["comment"])) {
-        $commentErr = "Please write a few words of description";
-        //$comment = null;
-    } else {
-        $comment = test_input($_POST["comment"]);
-    }
-
-    if (empty($_POST["date"])) {
-        $dateErr = "Date is required";
-    }
-
-    if($_FILES["anyfile"]["error"] != 0){
-        $fileErr =  "No file uploaded";
-    }
-
-}
-
-function test_input($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data);
-    return $data;
-}
-?>
-<div class="all"> <!-- this div is not used lol -->
-<h2><span class="center-title">Anonymous Reporting Form</span></h2>
-<p><span class="error">* required field</span></p>
-<form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" enctype="multipart/form-data" class="form-submit">
-    <p>Title: <input type="text" name="title" value="<?php echo $title;?>"></p>
-    <span class="error">* <?php echo $titleErr;?></span>
-    <br><br>
-    <p>Event Date: <input type="date" name="date" value="<?php echo $date=$_POST['date'];?>"></p>
-    <span class="error">* <?php echo $dateErr;?></span>
-    <br><br>
-    <p>Comment:</p><textarea name="comment" rows="5" cols="40"><?php echo $comment;?></textarea>
-    <span class="error">* <?php echo $commentErr;?></span>
-    <br><br>
-    <label for="file_name"> Files:</label>
-    <input type="file" name="anyfile" id="anyfile">
-    <br><br>
-    Note: Only .zip, .pdf, .docx, .doc, .jpg, .png, .txt file formats are accepted.
-    <br><br>
-    <input type="submit" name="submit" value="Submit">
-</form>
-    <a href="Admin_login.php" class="button" role="button">Admin mode</a>
-</div>
-<?php
-
 include "database_connect.php";
 
-function f_alert($message) {
-    echo "<script>alert('$message');</script>";
-}
+// define variables and set to empty values
+$title = $date = $comment = "";
+// $submit_err = $submit_conf = "";
 
-if (!empty($titleErr) OR (!empty($dateErr)) OR (!empty($commentErr))){
-    f_alert('The submission was not successful. Please check for errors and try again.');
-} elseif (!empty($title) OR (!empty($comment)) OR (!empty($date))) {
-    // $_POST=array();
-    //$sql = "INSERT INTO Reports (ReportID, Report_title, Submission_Date, Report_Description) VALUES (?, ?, ?, ?)";
-    $sql = "INSERT INTO Reports (Report_title, Submission_Date, Report_Description) VALUES (?, ?, ?)";
+// When the report is submitted
+if($_SERVER["REQUEST_METHOD"] == "POST"){
+    $title = $_POST["title"];
+    $comment = $_POST["comment"];
+    $date = $_POST["date"];
 
+    $sql = "INSERT INTO Reports (ReportID, Report_title, Submission_Date, Report_Description) VALUES (?, ?, ?, ?)";
+
+    //Prepares statement $sql to be executed.
     if($result = mysqli_prepare($link, $sql)){
-        //Bind param to sql statement
-        //mysqli_stmt_bind_param($result, "isss", $t,$ReportTitle, $ReportDate, $ReportComment);
-        mysqli_stmt_bind_param($result,"sss", $ReportTitle, $ReportDate, $ReportComment);
+        mysqli_stmt_bind_param($result, "isss", $ReportId,$ReportTitle, $ReportDate, $ReportComment);
+        //Bind the parameters for execution
+        $ReportId = time();
         $ReportTitle = $title;
         $ReportDate = $date;
         $ReportComment = $comment;
 
-        if(mysqli_stmt_execute($result)){
-            // when values are entered, a report ID will be generated into the database
-            $t = time();
-            $sqlID = "UPDATE Reports SET ReportID = '$t' WHERE Report_title = '$title' AND Submission_Date = '$date' AND Report_Description = '$comment'";
-            $ReportID = mysqli_query($link, $sqlID);
+        // if there is an attachment with the sent report
+        if(!empty($_FILES["attachment"]["name"])){
+            //Check for errors with the report upload
+            if(isset($_FILES["attachment"]) && $_FILES["attachment"]["error"] == 0){
+                $filename = $_FILES["attachment"]["name"];
+                $filesize = $_FILES["attachment"]["size"];
+                $fileplace = $_FILES["attachment"]["tmp_name"];
+                $maxsize = 10*1024*1024; // max size of file is 10MB.
+                $upload_folder = 'upload/'.$filename; // upload folder
+                $ext = pathinfo($filename, PATHINFO_EXTENSION);
+                //list of allowed filetypes
+                $allowed = array("jpg", "jpeg", "gif", "png", "doc", "docx", "zip", "txt", "pdf");
 
-            // if there is a file submitted with the Rest of the reports
-            if($_FILES["anyfile"]["error"] == 0){
-
-                //Check if file was uploaded with no error
-                if(isset($_FILES["anyfile"]) && $_FILES["anyfile"]["error"] == 0){
-                    //name of the uploaded file
-                    // $allowed = array("jpg", "jpeg", "gif", "png", "heif", "doc", "docx", "zip", "txt", "pdf");
-                    $filename = $_FILES["anyfile"]["name"]; //name of the uploaded file
-                    $filesize = $_FILES["anyfile"]["size"]; //size of the uploaded file
-                    $fileplace = $_FILES["anyfile"]["tmp_name"]; //physical file on a temp uploads directory on server
-
-                    $maxsize = 10*1024*1024; // set max size of 10MB
-
-                    $upload_folder = 'upload/'.$filename;
-
-                    //Validate file extension
-                    $ext = pathinfo($filename, PATHINFO_EXTENSION);
-                    if(!in_array($ext, ['zip','pdf','docx','doc','jpg','png','txt'])){
-                        echo "Error: Please select a valid file format.";
-                    } elseif ($filesize > $maxsize){
-                        echo "Error: File is larger than 10MB";
-                    } else {
-                        //move the uploaded tmp file into destination
-                        if(move_uploaded_file($fileplace, $upload_folder)){
-                            $stmt = "UPDATE Reports SET File = '$filename' WHERE ReportID = '$t'";
-                            if(mysqli_query($link, $stmt)){
-                                echo "File Uploaded!";
-                            } else {
-                                echo "File failed to upload";
-                            }
-                        }
-                    }
-
-                } else {
-                    echo "File upload encountered an error. The file may be missing, or corrupted.";
+                if(in_array($ext, $allowed) === FALSE){
+                    $submit_err = "Error: Please select a valid file format.";
                 }
+                if($filesize > $maxsize){
+                    $submit_err = "Error: File cannot be larger than 10MB.";
+                }
+
+                if(empty($submit_err)){
+                    mysqli_stmt_execute($result);
+                    move_uploaded_file($fileplace, $upload_folder);
+                    $stmt = "UPDATE Reports SET File = '$filename' WHERE ReportID = '$ReportId'";
+                    mysqli_query($link, $stmt);
+                    echo '<script>alert("Submission Success! Your ReportID is '.$ReportId.'")</script>';
+                }
+            } else {
+                $submit_err = "File upload encountered an error. The file may be missing, or corrupted.";
             }
-            echo '<script>alert("Submission Success! Your ReportID is '.$t.'")</script>';
-            ///f_alert('Submission Success!');
+        } elseif(empty($_FILES["attachment"]["name"])){
+            mysqli_stmt_execute($result);
+            echo '<script>alert("Submission Success! Your ReportID is '.$ReportId.'")</script>';
         }
         mysqli_stmt_close($result);
-
     }
+    mysqli_close($link);
 }
-mysqli_close($link);
 ?>
+
+<!DOCTYPE html>
+<html>
+<title>Anonymous Reporting Website</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="w3css.css">
+<style>
+    body, html {
+        height: 100%;
+        font-family: "Inconsolata", sans-serif;
+    }
+
+    .bgimg {
+        background-position: center;
+        background-size: cover;
+        background-image: url("adjust.jpg");
+        min-height: 75%;
+    }
+
+    .menu {
+        display: none;
+    }
+</style>
+<body>
+
+<!-- Links (sit on top) -->
+<div class="w3-top">
+    <div class="w3-row w3-padding w3-black">
+        <div class="w3-col s3">
+            <a href="Form.php" class="w3-button w3-block w3-black">FORM</a>
+        </div>
+        <div class="w3-col s3">
+            <a href="Admin_login.php" class="w3-button w3-block w3-black">ADMIN</a>
+        </div>
+    </div>
+</div>
+
+<!-- Header with image -->
+<header class="bgimg w3-display-container w3-grayscale-min" id="home">
+    <div class="w3-display-bottomleft w3-center w3-padding-large w3-hide-small">
+        <span class="w3-tag">REA Group 12</span>
+    </div>
+    <div class="w3-display-middle w3-center">
+        <span class="w3-text-white" style="font-size:90px">Tanpa<br>Nama</span>
+    </div>
+    <div class="w3-display-bottomright w3-center w3-padding-large">
+        <span class="w3-text-white">Last Updated on Dec 2021</span>
+    </div>
+</header>
+
+<!-- Add a background color and large text to the whole page -->
+<div class="w3-blue w3-grayscale w3-large">
+
+    <!-- About Container -->
+    <div class="w3-container" id="about">
+        <div class="w3-content" style="max-width:700px">
+            <h5 class="w3-center w3-padding-64"><span class="w3-tag w3-wide">ABOUT TANPA NAMA</span></h5>
+            <p>Tanpa Nama is a service founded by students who believe in creating a space for where injustices can be reported. By allowing submissions without the need of sharing personal information about the sender, reports can be sent by users without having to fear negative repercussions. </p>
+            <!-- <p>In addition to our full espresso and brew bar menu, we serve fresh made-to-order breakfast and lunch sandwiches, as well as a selection of sides and salads and other good stuff.</p> -->
+            <img src="2.gif" style="width:100%;max-width:1000px" class="w3-margin-top">
+        </div>
+    </div>
+
+
+    <!-- Contact/Area Container -->
+    <div class="w3-container" id="where" style="padding-bottom:32px;">
+        <div class="w3-content" style="max-width:700px">
+            <h5 class="w3-center w3-padding-48"><span class="w3-tag w3-wide">ANONYMOUS REPORTING FORM</span></h5>
+            <p><span class="w3-tag">FYI!</span> Please be direct but informative when filling in the Title, Event Date, and Description fields. The administrators of this service will use the information you send for their investigation, and concise information is appreciated. The submission form will take an optional one attachment file if the file can be used to supplement the report.</p>
+            <p>When the report is successfully submitted, a confirmation ID will be given. Please take note of this number as it will be used to keep track of the progress on your reports. </p>
+            <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" enctype="multipart/form-data" class="form-submit">
+                <!--<form action="/action_page.php" target="_blank"> -->
+                <p><input class="w3-input w3-padding-16 w3-border" type="text" placeholder="Report Title" required name="title" value="<?php echo $title;?>"></p>
+                <p><input class="w3-input w3-padding-16 w3-border" type="date" placeholder="Date of Event" required name="date" value="<?php echo $date=$_POST["date"];?>"></p>
+                <p><textarea name="comment" rows="5" cols="40" input class="w3-input w3-padding-16 w3-border" placeholder="Description of the Event" required name="Comment"></textarea></p>
+                <label for="file_name"> Files:</label>
+                <input type="file" name="attachment" id="attachment">
+                <br><br>
+                <span class="w3-tag">Note:</span> Only .zip, .pdf, .docx, .doc, .jpg, .png, .txt file formats are accepted.
+                <br><br>
+                <?php
+                if(!empty($submit_err)){
+                    echo '<span class="w3-tag w3-red w3-text-white">' . $submit_err . '</span>';
+                }
+                ?>
+                <p><button class="w3-button w3-black" type="submit" value="Submit">SUBMIT REPORT</button></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- End page content -->
+</div>
+
+<!-- Footer
+<footer class="w3-center w3-light-grey w3-padding-48 w3-large">
+    <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" title="W3.CSS" target="_blank" class="w3-hover-text-green">w3.css</a></p>
+</footer>
+-->
+
+<script>
+    // Tabbed Menu
+    function openMenu(evt, menuName) {
+        var i, x, tablinks;
+        x = document.getElementsByClassName("menu");
+        for (i = 0; i < x.length; i++) {
+            x[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablink");
+        for (i = 0; i < x.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" w3-dark-grey", "");
+        }
+        document.getElementById(menuName).style.display = "block";
+        evt.currentTarget.firstElementChild.className += " w3-dark-grey";
+    }
+    document.getElementById("myLink").click();
+</script>
 </body>
 </html>
+
+
