@@ -1,4 +1,8 @@
 <?php
+
+///    THIS SESSION NOW CAN RESET WITH THE INSERT USER PAGE
+/// Changes: Instead of updating with param_id, it uses the param_users.
+
 session_start();
 
 // Check if the user is logged in, otherwise redirect to login page
@@ -14,11 +18,12 @@ $new_password_err = $confirm_password_err = "";
 
 if($_SERVER["REQUEST_METHOD"] == "POST"){
 
-    //validatepassword
+    //validate password
     if(empty(trim($_POST["new_password"]))){
         $new_password_err = "Please enter a new Password";
-    } elseif(strlen(trim($_POST["new_password"])) < 3) {
+    } elseif(strlen(trim($_POST["new_password"])) < 8) {
         $new_password_err = "Password must have at least 8 characters";
+        $error = $new_password_err;
     } else {
         $new_password = trim($_POST["new_password"]);
     }
@@ -30,6 +35,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         $confirm_password = trim($_POST["confirm_password"]);
         if(empty($new_password_err) && ($new_password != $confirm_password)){
             $confirm_password_err = "Password did not match.";
+            $error = $confirm_password_err;
         }
     }
 
@@ -37,27 +43,29 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     //Check input error for database
     if(empty($new_password_err) && empty($confirm_password_err)) {
 
-        echo '<script>alert("Password changed successfully! The page will be redirected back to Administator Login.")</script>';
+        // echo '<script>alert("Password changed successfully! The page will be redirected back to Administator Login.")</script>';
 
         // sql statement
-        $sql = 'UPDATE Admin SET Password = ? WHERE UserId = ?';
+        $sql = 'UPDATE Admins SET Password = ? WHERE Username = ?';
 
         if($result = mysqli_prepare($link, $sql)) {
             //Bind variables;
-            mysqli_stmt_bind_param($result, "si", $param_password, $param_id);
+            mysqli_stmt_bind_param($result, "ss", $param_password, $param_user);
 
             // define variables for binding
             $param_password = password_hash($new_password, PASSWORD_DEFAULT);
-            $param_id = $_SESSION["id"];
+            $param_user = $_SESSION["username"];
 
             //Execute statement
             if (mysqli_stmt_execute($result)) {
                 $created_date = date('Y-m-d H:i:s');
-                $sqltime = "UPDATE Admin SET LoginTime = '$created_date' WHERE UserID = '$param_id'";
+                $sqltime = "UPDATE Admins SET LoginTime = '$created_date' WHERE Username = '$param_user'";
                 $changetime = mysqli_query($link, $sqltime);
+
                 //Password has updated, and can redirect back to login
                 session_destroy();
-                // start a session for creating password reset alert box part 1
+
+                // start a session for creating password reset alert box part 1 - continues on with admin login page
                 session_start();
                 $_SESSION['confirmMsg'] = "Password changed successfully! The page will be redirected back to Administrator Login.";
                 header("Location: Admin_login.php");
@@ -74,39 +82,54 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Reset Password</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        body{ font: 14px sans-serif; }
-        .wrapper{ width: 360px; padding: 20px; }
-        .error {color: #FF0000;}
-    </style>
+    <title>Create a New User</title>
+    <link rel="stylesheet" href="w3css.css">
 </head>
+<style>
+    body, html {
+        height: 100%;
+        font-family: "Inconsolata", sans-serif;
+        background-color: #6c88a0;
+    }
+</style>
 <body>
-<div class="wrapper">
-    <h2> Password Reset</h2>
-    <p>Change your Temporary Password.</p>
-    <!--<h1 class="my-5">Hi, <b><?php echo $_SESSION["id"]; ?></b>. Welcome to our site.</h1>--!>
-    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-        <div class="form-group">
-            <label>New Password</label>
-            <input type="password" name="new_password" class="form-control <?php echo (!empty($new_password_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $new_password; ?>">
-            <span class="invalid-feedback"><?php echo $new_password_err; ?></span>
+<div class="form-all">
+
+    <!-- Links (sit on top) -->
+    <div class="w3-top">
+        <div class="w3-row w3-padding w3-black">
+            <div class="w3-col s3">
+                <a href="Form.php" class="w3-button w3-block w3-black">FORM</a>
+            </div>
+            <div class="w3-col s3">
+                <a href="Admin_login.php" class="w3-button w3-block w3-black">ADMIN</a>
+            </div>
         </div>
-        <div class="form-group">
-            <label>Confirm Password</label>
-            <input type="password" name="confirm_password" class="form-control <?php echo (!empty($confirm_password_err)) ? 'is-invalid' : ''; ?>">
-            <span class="invalid-feedback"><?php echo $confirm_password_err; ?></span>
+    </div>
+
+    <div class="w3-container" id="where" style="padding-bottom:32px;">
+        <div class="w3-content" style="max-width:700px">
+            <br><br><br><br><br><br>
+            <h5 class="w3-center w3-padding-48"><span class="w3-tag w3-wide">RESET YOUR PASSWORD</span></h5>
+            <p style="color:#ffffff"><span class="w3-tag w3-red">WARNING:</span><b>Remember your password. You will NOT be able to retrieve it after this step!</b></p>
+            <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+                <!--<form action="/action_page.php" target="_blank"> -->
+                <p><input class="w3-input w3-padding-16 w3-border" type="password" placeholder="Password" required name="new_password"></p>
+                <p><input class="w3-input w3-padding-16 w3-border" type="password" placeholder="Confirm Password" required name="confirm_password"></p>
+                <?php
+                if(!empty($error)){
+                    echo '<span class="w3-tag w3-red w3-text-white">' . $error . '</span>';
+                }
+                ?>
+                <p><button class="w3-button w3-black" type="submit" value="Submit">RESET PASSWORD</button></p>
+            </form>
         </div>
-        <p><span class="error">WARNING: Remember your password. <b>You will NOT be able to retrieve it after this step!</b></span></p>
-        <div class="form-group">
-            <input type="submit" class="btn btn-primary" value="Submit">
-        </div>
-    </form>
+    </div>
 </div>
 </body>
 </html>
