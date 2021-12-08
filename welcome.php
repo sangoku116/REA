@@ -12,7 +12,6 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 include_once "database_connect.php";
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -54,7 +53,7 @@ include_once "database_connect.php";
 <h3 class="w3-center w3-padding-48"><span class="w3-tag w3-wide">REPORTS</span></h3>
 <?php
 include_once 'database_connect.php';
-$display = "SELECT * FROM Reports";
+$display = "SELECT * FROM Reports ORDER BY ReportID DESC";
 $result = mysqli_query($link, $display);
 echo "<table>";
 echo "<tr>";
@@ -63,6 +62,7 @@ echo "<th>Report Title</th>";
 echo "<th>Submission Date</th>";
 echo "<th>Report Description</th>";
 echo "<th>Action</th>";
+echo "<th>Checked On</th>";
 echo "</tr>";
 
 while ($row = mysqli_fetch_array($result)){
@@ -73,15 +73,18 @@ while ($row = mysqli_fetch_array($result)){
         echo "<td>".$row["Submission_Date"]."</td>";
         echo "<td>".$row["Report_Description"]."</td>";
         echo "<td> No file added</td>";
+        echo "<td> N/A</td>";
         echo "</tr>";
     } else{
         echo "<tr>";
         echo "<td>".$row["ReportID"]."</td>";
         echo "<td>".$row["Report_title"]."</td>";
         echo "<td>".$row["Submission_Date"]."</td>";
-        echo "<td>".$row["Report_Description"]."</td>";
-        echo "<td><a href='upload/".$row['File']."'>View</a></td>";
-
+        echo "<td>".$row["Report_Description"]."</td>"; ?>
+        <td><a href="view.php?file_id=<?php echo $row['ReportID'] ?>">View</a></td>
+        <?php
+        echo "<td>".$row["checked"]."</td>"; ?>
+        <?php
         echo "</tr>";
     }
 }
