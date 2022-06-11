@@ -13,7 +13,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     $comment = $_POST["comment"];
     $date = $_POST["date"];
 
-    $sql = "INSERT INTO Reports (ReportID, Report_title, Submission_Date, Report_Description) VALUES (?, ?, ?, ?)";
+    $sql = "INSERT INTO Report (ReportID, Report_title, Submission_Date, Report_Description) VALUES (?, ?, ?, ?)";
 
     //Prepares statement $sql to be executed.
     if($result = mysqli_prepare($link, $sql)){
@@ -31,8 +31,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 $filename = $_FILES["attachment"]["name"];
                 $filesize = $_FILES["attachment"]["size"];
                 $fileplace = $_FILES["attachment"]["tmp_name"];
-                $maxsize = 10*1024*1024; // max size of file is 10MB.
-                $upload_folder = 'upload/'.$filename; // upload folder
+                $maxsize = 1024*1024; // max size of file is 1MB.
+                //$upload_folder = 'upload/'.$filename; // upload folder
                 $ext = pathinfo($filename, PATHINFO_EXTENSION);
                 //list of allowed filetypes
                 $allowed = array("jpg", "jpeg", "gif", "png", "doc", "docx", "zip", "txt", "pdf");
@@ -41,13 +41,18 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                     $submit_err = "Error: Please select a valid file format.";
                 }
                 if($filesize > $maxsize){
-                    $submit_err = "Error: File cannot be larger than 10MB.";
+                    $submit_err = "Error: File cannot be larger than 1MB.";
                 }
+
+                $newFileName = md5(time().$filename).'.'.$ext;
+                $upload_folder = 'upload/'.$newFileName; // upload folder
 
                 if(empty($submit_err)){
                     mysqli_stmt_execute($result);
                     move_uploaded_file($fileplace, $upload_folder);
-                    $stmt = "UPDATE Reports SET File = '$filename' WHERE ReportID = '$ReportId'";
+
+                    chmod($upload_folder, 0755); // change permission of the file uploaded to not be executable
+                    $stmt = "UPDATE Report SET File = '$newFileName' WHERE ReportID = '$ReportId'";
                     mysqli_query($link, $stmt);
                     echo '<script>alert("Submission Success! Your ReportID is '.$ReportId.'")</script>';
                 }
@@ -120,6 +125,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     <!-- About Container -->
     <div class="w3-container" id="about">
         <div class="w3-content" style="max-width:700px">
+            <h5 class="w3-center w3-padding-64"><span class="w3-tag w3-wide"><a href="#where">Fill out a Form</a></span></h5>
             <h5 class="w3-center w3-padding-64"><span class="w3-tag w3-wide">ABOUT TANPA NAMA</span></h5>
             <p>Tanpa Nama is a service founded by students who believe in creating a space for where injustices can be reported. By allowing submissions without the need of sharing personal information about the sender, reports can be sent by users without having to fear negative repercussions. </p>
             <!-- <p>In addition to our full espresso and brew bar menu, we serve fresh made-to-order breakfast and lunch sandwiches, as well as a selection of sides and salads and other good stuff.</p> -->
@@ -136,9 +142,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             <p>When the report is successfully submitted, a confirmation ID will be given. Please take note of this number as it will be used to keep track of the progress on your reports. </p>
             <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" enctype="multipart/form-data" class="form-submit">
                 <!--<form action="/action_page.php" target="_blank"> -->
-                <p><input class="w3-input w3-padding-16 w3-border" type="text" placeholder="Report Title" required name="title" value="<?php echo $title;?>"></p>
-                <p><input class="w3-input w3-padding-16 w3-border" type="date" placeholder="Date of Event" required name="date" value="<?php echo $date=$_POST["date"];?>"></p>
-                <p><textarea name="comment" rows="5" cols="40" input class="w3-input w3-padding-16 w3-border" placeholder="Description of the Event" required name="Comment"></textarea></p>
+                <p><input class="w3-input w3-padding-16 w3-border" type="text" placeholder="Report Title" required name="title"></p>
+                <p><input class="w3-input w3-padding-16 w3-border" type="date" placeholder="Date of Event" required name="date"></p>
+                <p><textarea name="comment" rows="5" cols="40" maxlength="1000" class="w3-input w3-padding-16 w3-border" placeholder="Description of the Event - Character limit of 1000" required name="Comment"></textarea></p>
                 <label for="file_name"> Files:</label>
                 <input type="file" name="attachment" id="attachment">
                 <br><br>
