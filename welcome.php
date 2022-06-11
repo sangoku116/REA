@@ -38,9 +38,9 @@ include_once "database_connect.php";
         <?php
         $check = $_SESSION["username"];
 
-        if($check === "user2"){
+        if($check === "user1"){
             echo '<div class="w3-col w3-right w3-hide-small s1">';
-            echo '<a href="deluser.php" class="w3-button w3-bar-item w3-black">DELETE USER</a>';
+            echo '<a href="deluser1.php" class="w3-button w3-bar-item w3-black">DELETE USER</a>';
             echo '</div>';
             echo '<div class="w3-col w3-right w3-hide-small s1">';
             echo '<a href="adduser.php" class="w3-button w3-bar-item w3-black">ADD USER</a>';
@@ -53,7 +53,7 @@ include_once "database_connect.php";
 <h3 class="w3-center w3-padding-48"><span class="w3-tag w3-wide">REPORTS</span></h3>
 <?php
 include_once 'database_connect.php';
-$display = "SELECT * FROM Reports ORDER BY ReportID DESC";
+$display = "SELECT * FROM Report ORDER BY ReportID DESC";
 $result = mysqli_query($link, $display);
 echo "<table>";
 echo "<tr>";
@@ -83,7 +83,7 @@ while ($row = mysqli_fetch_array($result)){
         echo "<td>".$row["Report_Description"]."</td>"; ?>
         <td><a href="view.php?file_id=<?php echo $row['ReportID'] ?>">View</a></td>
         <?php
-        echo "<td>".$row["checked"]."</td>"; ?>
+        echo "<td>".$row["Checked"]."</td>"; ?>
         <?php
         echo "</tr>";
     }
