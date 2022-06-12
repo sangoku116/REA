@@ -6,7 +6,7 @@ session_start();
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: Admin_login.php");
     exit;
-} elseif ($_SESSION["username"] !== 'user2'){ // if the signed in user is not the User Admin
+} elseif ($_SESSION["username"] !== 'user1'){ // if the signed in user is not the User Admin
     header("location: Admin_login.php");
     exit;
 }
@@ -62,7 +62,19 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     if(strlen(trim($_POST["password"])) < 8){
         $password_err = "Password must have at least 8 characters.";
         $error = $password_err;
-    } else{
+    }elseif(!preg_match("/\d/", trim($_POST["password"]))){
+        $password_err = "Password should at least have 1 digit.";
+        $error = $password_err;
+    }elseif(!preg_match("/[A-Z]/", trim($_POST["password"]))){
+        $password_err = "Password should at least have one capital letter.";
+        $error = $password_err;
+    }elseif(!preg_match("/[a-z]/", trim($_POST["password"]))){
+        $password_err = "Password should at least have one lowercase letter.";
+        $error = $password_err;
+    }elseif(!preg_match("/\W/", trim($_POST["password"]))){
+        $password_err = "Password should at least have one special character such as !@#$%^&.";
+        $error = $password_err;
+    }else{
         $password = trim($_POST["password"]);
     }
 
@@ -144,6 +156,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             <br><br><br><br><br><br>
             <h5 class="w3-center w3-padding-48"><span class="w3-tag w3-wide">CREATE A NEW USER</span></h5>
             <p><span style="color: white">Enter the credentials for the new user. </span></p>
+            <p><span style="color: white">Password must be more than 8 characters and contain at least one uppercase and lowercase letter, a digit, and !@#$%^&*. </span></p>
             <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
                 <!--<form action="/action_page.php" target="_blank"> -->
                 <p><input class="w3-input w3-padding-16 w3-border" type="text" placeholder="Username" required name="username" value="<?php echo $username; ?>"></p>
