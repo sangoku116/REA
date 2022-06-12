@@ -22,9 +22,21 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     if(empty(trim($_POST["new_password"]))){
         $new_password_err = "Please enter a new Password";
     } elseif(strlen(trim($_POST["new_password"])) < 8) {
-        $new_password_err = "Password must have at least 8 characters";
+        $new_password_err = "Password must have at least 8 characters.";
         $error = $new_password_err;
-    } else {
+    }elseif(!preg_match("/\d/", trim($_POST["new_password"]))){
+        $new_password_err = "Password should at least have 1 digit.";
+        $error = $new_password_err;
+    }elseif(!preg_match("/[A-Z]/", trim($_POST["new_password"]))){
+        $new_password_err = "Password should at least have one capital letter.";
+        $error = $new_password_err;
+    }elseif(!preg_match("/[a-z]/", trim($_POST["new_password"]))){
+        $new_password_err = "Password should at least have one lowercase letter.";
+        $error = $new_password_err;
+    }elseif(!preg_match("/\W/", trim($_POST["new_password"]))){
+        $new_password_err = "Password should at least have one special character such as !@#$%^&.";
+        $error = $new_password_err;
+    }else{
         $new_password = trim($_POST["new_password"]);
     }
 
