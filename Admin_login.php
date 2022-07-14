@@ -21,53 +21,92 @@ include "database_connect.php";
 $username = $password = "";
 $username_err = $password_err = $login_err = "";
 
-// Processing form data when form is submitted
-if($_SERVER["REQUEST_METHOD"] == "POST"){
-    $username = trim($_POST["username"]);
-    $password = trim($_POST["password"]);
+//SUBMIT
+if($_SERVER["REQUEST_METHOD"]=="POST"){
+    $attempt_time=time()-60; // 1 min timeout
+    $ip_address=getIpAddr();
+    // Getting total count of hits on the basis of IP
+    $query=mysqli_query($link,"select count(*) as total_count from loginlog where TryTime > $attempt_time and IpAddress='$ip_address'");
+    $check_login_row=mysqli_fetch_assoc($query);
+    $total_count=$check_login_row['total_count'];
+    if($total_count == 5){
+        $login_err="To many failed login attempts. Please login after 60 seconds.";
+    }else{
+        //Getting Post Values
+        $username = trim($_POST['username']);
+        $password= trim($_POST['password']);
 
-    $sql = "SELECT UserID, Username, Password, LoginTime FROM Admins WHERE Username = ?";
+        $sql = "SELECT UserID, Username, Password, LoginTime FROM Admins WHERE Username = ?";
 
-    if($result = mysqli_prepare($link, $sql)){
-        mysqli_stmt_bind_param($result, "s", $admin_user);
-        $admin_user = $username;
+        if($result = mysqli_prepare($link, $sql)){
+            mysqli_stmt_bind_param($result, "s", $admin_user);
+            $admin_user = $username;
 
-        if(mysqli_stmt_execute($result)){
-            mysqli_stmt_store_result($result);
+            if(mysqli_stmt_execute($result)){
+                mysqli_stmt_store_result($result);
 
-            if(mysqli_stmt_num_rows($result) == 1){
-                mysqli_stmt_bind_result($result, $id, $username, $hashed_pass, $time);
-                if(mysqli_stmt_fetch($result)){
-                    //if($passowrd === $hashed_pass){
-                    if(password_verify($password, $hashed_pass)){
-                        if(is_null($time)){
-                            session_start();
-                            $_SESSION["loggedin"] = TRUE;
-                            $_SESSION["id"] = $id;
-                            $_SESSION["username"] = $username;
-                            header("Location: reset_pass.php");
-                        }else{ // possible if/else statement for the User role admin?
-                            session_start();
-                            $_SESSION["loggedin"] = TRUE;
-                            $_SESSION["id"] = $id;
-                            $_SESSION["username"] = $username;
-                            header("Location: welcome.php");
-                        } // here will be for any other user.
-                    }else{
-                        $login_err = "Bad Username or Password.";
+                if(mysqli_stmt_num_rows($result) == 1){
+                    mysqli_stmt_bind_result($result, $id, $username, $hashed_pass, $time);
+                    if(mysqli_stmt_fetch($result)){
+                        //if($password === $hashed_pass){
+                        if(password_verify($password, $hashed_pass)){
+                            if(is_null($time)){
+                                session_start();
+                                $_SESSION["loggedin"] = TRUE;
+                                $_SESSION["id"] = $id;
+                                $_SESSION["username"] = $username;
+                                header("Location: reset_pass.php");
+                            }else{
+                                session_start();
+                                $_SESSION["loggedin"] = TRUE;
+                                $_SESSION["id"] = $id;
+                                $_SESSION["username"] = $username;
+                                mysqli_query($link,"Delete from loginlog where IpAddress='$ip_address'"); //delete previous attempts if IP is successful
+                                header("Location: welcome.php");
+                            }
+                        }else{
+                            $total_count++;
+                            if($total_count == 5){
+                                $login_err = "Too many failed login attempts. Please login after 60 seconds.";
+                            }else{
+                                $login_err = "Bad Username of Password";
+                            }
+                            $try_time = time();
+                            mysqli_query($link, "Insert into loginlog(IpAddress, TryTime) value('$ip_address','$try_time')");
+                        }
                     }
+                }else{
+                    $total_count++;
+                    if($total_count == 5){
+                        $login_err = "Too many failed login attempts. Please login after 60 seconds.";
+                    }else{
+                        $login_err = "Bad Username of Password";
+                    }
+                    $try_time = time();
+                    mysqli_query($link, "Insert into loginlog(IpAddress, TryTime) value('$ip_address','$try_time')");
                 }
-            } else{
-                $login_err = "Bad Username or Password.";
+            }else{
+                echo "Oops! Something went wrong. Please try again later.";
             }
-        } else {
-            echo "Oops! Something went wrong. Please try again later.";
         }
-
+        mysqli_stmt_close($result);
     }
-    mysqli_stmt_close($result);
+    mysqli_close($link);
 }
-mysqli_close($link);
+
+// Get the IP address of the connecting machine
+function getIpAddr(){
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])){
+        $ipAddr=$_SERVER['HTTP_CLIENT_IP'];
+    }elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
+        $ipAddr=$_SERVER['HTTP_X_FORWARDED_FOR'];
+    }else{
+        $ipAddr=$_SERVER['REMOTE_ADDR'];
+    }
+    return $ipAddr;
+}
+
+
 ?>
 
 <!DOCTYPE html>
