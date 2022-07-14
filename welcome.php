@@ -16,13 +16,17 @@ include_once "database_connect.php";
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Welcome</title>
     <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
     <link rel="stylesheet" href="w3css.css">
     <style>
-        body{font: 14px sans-serif; text-align: center;
-            background: linear-gradient(#6c88a0, #145288) no-repeat fixed;
+        body, html
+        {   font: 14px sans-serif; text-align: center;
+            background: linear-gradient(#6c88a0, #145288);
             background-size: cover;
+            height: 200%
+            position: fixed;
         }
     </style>
 </head>
@@ -40,7 +44,7 @@ include_once "database_connect.php";
 
         if($check === "user1"){
             echo '<div class="w3-col w3-right w3-hide-small s1">';
-            echo '<a href="deluser1.php" class="w3-button w3-bar-item w3-black">DELETE USER</a>';
+            echo '<a href="deluser.php" class="w3-button w3-bar-item w3-black">DELETE USER</a>';
             echo '</div>';
             echo '<div class="w3-col w3-right w3-hide-small s1">';
             echo '<a href="adduser.php" class="w3-button w3-bar-item w3-black">ADD USER</a>';
@@ -81,7 +85,7 @@ while ($row = mysqli_fetch_array($result)){
         echo "<td>".$row["Report_title"]."</td>";
         echo "<td>".$row["Submission_Date"]."</td>";
         echo "<td>".$row["Report_Description"]."</td>"; ?>
-        <td><a href="view.php?file_id=<?php echo $row['ReportID'] ?>">View</a></td>
+        <td><a href="view.php?file_id=<?php echo $row['ReportID'] ?>">Download</a></td>
         <?php
         echo "<td>".$row["Checked"]."</td>"; ?>
         <?php
