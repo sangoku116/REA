@@ -238,10 +238,11 @@ table{
     border-collapse: collapse;
     margin-left: auto;
     margin-right: auto;
-    width: 70%;
+    max-width: 70%;
     border-spacing: 50px;
     position: relative;
     top: 30px;
+    min-width: 30%;
 }
 th, td{
     background-color: rgba(72,120,160,0.8);
@@ -250,6 +251,12 @@ th, td{
     padding: 15px;
     color: white;
     text-decoration:none;
-    max-width: 1200px;
 }
+
+.cntr{
+    position: fixed;
+    margin: auto;
+    text-align: center;
+}
+
 .w3-btn,.w3-button-welcome{border:none;display:inline-block;padding:8px 16px;vertical-align:middle;overflow:hidden;text-decoration:none;color:inherit;background-color:inherit;text-align:center}
