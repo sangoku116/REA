@@ -6,7 +6,7 @@ session_start();
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: Admin_login.php");
     exit;
-} elseif ($_SESSION["username"] !== 'user2'){ // if the signed in user is not the User Admin
+} elseif ($_SESSION["username"] !== 'user1'){ // if the signed in user is not the User Admin
     header("location: Admin_login.php");
     exit;
 }
@@ -74,9 +74,9 @@ require_once "database_connect.php";
     <?php
     echo '<span class="w3-tag w3-green w3-text-white">' . $message . '</span>';
     ?>
-    <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+    <form method="post" style="text-align: center;" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
         <br><br><br>
-        <label>Username:</label>
+        <label> <span style="color: white">Username:</span></label>
         <input name="username" type="text" id="username">
         <input name="delete" type="submit" id="delete" value="Delete">
     </form>
@@ -87,9 +87,11 @@ require_once "database_connect.php";
 <?php
 require_once "database_connect.php";
 
+
 if(isset($_POST["delete"])){
     $username = $_POST["username"];
     // insert rest of code here
+
     $sql = "DELETE FROM Admins WHERE Username = '$username'";
     $stmt = mysqli_query($link, $sql);
 
@@ -97,11 +99,17 @@ if(isset($_POST["delete"])){
     if(mysqli_affected_rows($link) > 0){
         $url1 = $_SERVER["REQUEST_URI"];
         header("Refresh: 3; URL=$url1");
-        //$message = "User deleted - Refreshing page";
-        echo "User deleted - Refreshing page";
+        $message = "User deleted - Refreshing page";
+        echo '<div style="text-align: center;">';
+        echo '<br>';
+        echo '<span class="w3-tag w3-green w3-text-white">' . $message . '</span>';
+        echo '</div>';
     }elseif (mysqli_affected_rows($link) == 0){
-        //$message =  "That user does not exist.";
-        echo "That user does not exist.";
+        $message =  "That user does not exist.";
+        echo '<div style="text-align: center;">';
+        echo '<br>';
+        echo '<span class="w3-tag w3-red w3-text-white">' . $message . '</span>';
+        echo '</div>';
     }
 
     mysqli_close($link);
